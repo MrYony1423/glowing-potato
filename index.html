@@ -1,70 +1,195 @@
 <!DOCTYPE html>
 <html lang="he">
 <head>
-  <meta charset="UTF-8">
-  <title>דף נחיתה אישי</title>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <title>דף נחיתה מקצועי</title>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap" rel="stylesheet" />
   <style>
+    /* Reset בסיסי */
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
+      margin: 0;
+      font-family: 'Assistant', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #f0f0f5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 60px 20px 100px;
+      transition: background 0.3s ease;
+    }
+
+    header {
       text-align: center;
-      direction: rtl;
-      padding: 40px;
-      max-width: 700px;
-      margin: auto;
-    }
-
-    #editor {
-      display: none;
-      margin-top: 30px;
-    }
-
-    textarea, input[type="text"], input[type="url"] {
+      margin-bottom: 30px;
+      max-width: 900px;
       width: 100%;
-      font-size: 16px;
-      margin-bottom: 10px;
+      user-select: none;
     }
 
-    button {
-      padding: 10px 20px;
-      margin-top: 10px;
-      cursor: pointer;
+    h1#mainTitle {
+      font-size: 3.2rem;
+      font-weight: 700;
+      margin: 0;
+      line-height: 1.1;
+      letter-spacing: 0.05em;
+      text-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      cursor: default;
     }
 
-    a button {
-      background-color: #4CAF50;
+    main {
+      max-width: 900px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      backdrop-filter: blur(10px);
+      user-select: none;
+    }
+
+    main h2, main p {
+      margin: 20px 0;
+      cursor: default;
+    }
+
+    main h2.editable, main p.editable, #mainTitle.editable {
+      user-select: text;
+    }
+
+    .toolbar {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 14px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      padding: 12px 18px;
+      display: flex;
+      gap: 12px;
+      z-index: 9999;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .toolbar button {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
       color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(118,75,162,0.6);
+      transition: background 0.3s ease, transform 0.15s ease;
+      font-family: 'Assistant', sans-serif;
+      user-select: none;
+    }
+
+    .toolbar button:hover {
+      background: linear-gradient(135deg, #6c3ba1 0%, #5961e6 100%);
+      transform: scale(1.05);
+    }
+
+    .toolbar button:active {
+      transform: scale(0.95);
+    }
+
+    /* שדה הסיסמה בתחתית */
+    #loginBox {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 40px;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      z-index: 9999;
+      backdrop-filter: blur(12px);
+      max-width: 400px;
+      width: 90%;
+      user-select: none;
+    }
+
+    #loginBox input[type="password"] {
+      flex-grow: 1;
+      border: none;
+      background: transparent;
+      padding: 8px 14px;
+      font-size: 16px;
+      color: #eee;
+      border-radius: 30px;
+      outline: none;
+      user-select: text;
+      font-family: 'Assistant', sans-serif;
+    }
+
+    #loginBox input::placeholder {
+      color: #ccc;
+    }
+
+    #loginBox button {
+      margin-left: 15px;
+      background: #764ba2;
+      border: none;
+      color: white;
+      padding: 10px 22px;
+      font-weight: 700;
+      font-size: 15px;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(118,75,162,0.8);
+      transition: background 0.3s ease;
+      user-select: none;
+    }
+
+    #loginBox button:hover {
+      background: #5b2c97;
+    }
+
+    /* מצב עריכה */
+    .editable[contenteditable="true"] {
+      outline: 2px dashed #d1c4e9;
+      background-color: rgba(255, 255, 255, 0.15);
+      cursor: text;
     }
   </style>
 </head>
 <body>
 
-  <h1 id="title">כותרת ראשית...</h1>
-  <p id="content">תוכן כלשהו יופיע כאן.</p>
+  <header>
+    <h1 id="mainTitle" class="editable" contenteditable="false">ברוך הבא לאתר שלי</h1>
+  </header>
 
-  <a id="actionButton" href="#" target="_blank" style="display:none;">
-    <button>כפתור פעולה</button>
-  </a>
+  <main>
+    <h2 class="editable" contenteditable="false">זה דף הנחיתה שלך</h2>
+    <p class="editable" contenteditable="false">אתה יכול לערוך אותי בדיוק כמו ב־Wix! לחץ על כפתור העריכה והתחל לשנות טקסטים.</p>
+    <p class="editable" contenteditable="false">אתה יכול להוסיף טקסט, למחוק ולשנות הכל.</p>
+  </main>
 
-  <div id="loginArea">
-    <input type="password" id="password" placeholder="הכנס סיסמה">
-    <button onclick="login()">כניסה</button>
+  <div class="toolbar" id="toolbar" style="display:none;">
+    <button onclick="enableEditing()">עריכה</button>
+    <button onclick="saveToFirebase()">שמור</button>
+    <button onclick="disableEditing()">סיום עריכה</button>
   </div>
 
-  <button id="editToggle" style="display:none;" onclick="toggleEdit()">ערוך</button>
-
-  <div id="editor">
-    <input type="text" id="editTitle" placeholder="כותרת חדשה">
-    <textarea id="editContent" placeholder="תוכן חדש..."></textarea>
-    <input type="url" id="editButtonLink" placeholder="קישור לכפתור (למשל https://wa.me/...)">
-    <input type="text" id="editButtonText" placeholder="טקסט על הכפתור">
-    <button onclick="saveChanges()">שמור</button>
+  <div id="loginBox">
+    <input type="password" id="passwordInput" placeholder="הכנס סיסמה לעריכה" autocomplete="off" />
+    <button onclick="checkPassword()">כניסה</button>
   </div>
 
-  <script>
-    // הגדרות Firebase שלך
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyA77QFBCIaUTqKdphQM989MYlmRW5Gbhhw",
       authDomain: "yona1324-3eb60.firebaseapp.com",
@@ -75,72 +200,63 @@
       measurementId: "G-ZV41SZR7J9"
     };
 
-    // התחברות לפיירבייס
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const docRef = db.collection("landing").doc("main");
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    // טעינת תוכן מהמסמך
-    docRef.get().then((doc) => {
-      if (doc.exists) {
-        const data = doc.data();
-        document.getElementById("title").innerText = data.title || "";
-        document.getElementById("content").innerText = data.content || "";
-        if (data.buttonURL && data.buttonText) {
-          const btn = document.getElementById("actionButton");
-          btn.href = data.buttonURL;
-          btn.querySelector("button").innerText = data.buttonText;
-          btn.style.display = "inline-block";
-        }
+    const editableElements = document.querySelectorAll('.editable');
+
+    // טען תוכן מ-Firebase כשהדף טוען
+    window.onload = async () => {
+      const docRef = doc(db, "pages", "landingPage");
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        editableElements.forEach((el, idx) => {
+          if (data["el" + idx]) el.innerHTML = data["el" + idx];
+        });
       }
-    });
+    };
 
-    // התחברות עם סיסמה
-    function login() {
-      const pw = document.getElementById("password").value;
-      if (pw === "1324") {
-        document.getElementById("editToggle").style.display = "inline-block";
-        document.getElementById("loginArea").style.display = "none";
+    // בדיקת סיסמה והצגת כלי עריכה
+    window.checkPassword = () => {
+      const pw = document.getElementById("passwordInput").value;
+      if (pw === "gili2") {
+        document.getElementById("toolbar").style.display = "flex";
+        document.getElementById("loginBox").style.display = "none";
       } else {
-        alert("סיסמה שגויה");
+        alert("סיסמה שגויה!");
       }
-    }
+    };
 
-    // מעבר לעריכה
-    let editing = false;
-    function toggleEdit() {
-      editing = !editing;
-      const editor = document.getElementById("editor");
-      editor.style.display = editing ? "block" : "none";
-      document.getElementById("editToggle").innerText = editing ? "סיום עריכה" : "ערוך";
-      if (editing) {
-        // מילוי טפסים מהמסך
-        document.getElementById("editTitle").value = document.getElementById("title").innerText;
-        document.getElementById("editContent").value = document.getElementById("content").innerText;
-      }
-    }
-
-    // שמירת שינויים
-    function saveChanges() {
-      const title = document.getElementById("editTitle").value;
-      const content = document.getElementById("editContent").value;
-      const buttonURL = document.getElementById("editButtonLink").value;
-      const buttonText = document.getElementById("editButtonText").value;
-
-      docRef.set({
-        title,
-        content,
-        buttonURL,
-        buttonText
-      }).then(() => {
-        alert("המידע נשמר בהצלחה!");
-        location.reload();
-      }).catch((error) => {
-        alert("אירעה שגיאה: " + error.message);
-        console.error(error);
+    // הפעלת מצב עריכה
+    window.enableEditing = () => {
+      editableElements.forEach(el => {
+        el.contentEditable = "true";
+        el.focus();
       });
-    }
-  </script>
+    };
 
+    // סיום עריכה
+    window.disableEditing = () => {
+      editableElements.forEach(el => el.contentEditable = "false");
+    };
+
+    // שמירת תוכן ל-Firebase
+    window.saveToFirebase = async () => {
+      const content = {};
+      editableElements.forEach((el, idx) => {
+        content["el" + idx] = el.innerHTML;
+      });
+
+      try {
+        await setDoc(doc(db, "pages", "landingPage"), content);
+        alert("המידע נשמר בהצלחה!");
+        disableEditing();
+      } catch (e) {
+        alert("אירעה שגיאה בשמירה: " + e.message);
+        console.error(e);
+      }
+    };
+  </script>
 </body>
 </html>
