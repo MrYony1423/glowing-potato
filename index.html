@@ -1,199 +1,113 @@
-
 <!DOCTYPE html>
-<html lang="he">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Brawl Mo.co – Levels & Sound</title>
+  <meta charset="UTF-8" />
+  <title>Moco Like Game</title>
   <style>
-    * { box-sizing: border-box; margin:0; padding:0; }
-    html, body { height:100%; font-family: Arial, sans-serif; background: #111; overflow:hidden; }
-    #menu {
-      position:absolute; top:0;left:0; width:100%; height:100%;
-      background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://picsum.photos/1600/900?blur=5') center/cover no-repeat;
-      display:flex; justify-content:center; align-items:center; flex-direction:column; color:#fff; text-align:center;
-      z-index:10;
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
     }
-    #menu input { font-size:24px; padding:10px; margin-bottom:20px; width:250px; border-radius:8px; border:none; }
-    #menu button {
-      font-size:26px; padding:15px 30px; border:none; border-radius:15px;
-      background:#00f7ff; color:#000; cursor:pointer; transition:0.3s;
-    }
-    #menu button:hover { background:#0ff; transform:scale(1.05); }
     canvas {
-      display:block; margin:auto; background:#222; border:4px solid #0ff; border-radius:10px;
+      background: #ccc;
+      display: block;
     }
-    #ui {
-      position:absolute; top:10px; left:10px; color:#fff; font-size:20px;
+    #controls {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #888;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    #attackBtn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: orange;
     }
   </style>
 </head>
 <body>
+  <canvas id="gameCanvas" width="800" height="500"></canvas>
 
-<div id="menu">
-  <h1>BRAWL Mo.co</h1>
-  <input id="usernameInput" type="text" placeholder="הכנס שם משתמש">
-  <button id="startButton">התחל לשחק</button>
-  <p id="errMsg" style="color:red; margin-top:10px;"></p>
-</div>
+  <div id="controls">
+    <div class="btn" onclick="move('left')">←</div>
+    <div class="btn" onclick="move('up')">↑</div>
+    <div class="btn" onclick="move('down')">↓</div>
+    <div class="btn" onclick="move('right')">→</div>
+  </div>
+  <div class="btn" id="attackBtn" onmousedown="attack(true)" onmouseup="attack(false)">⚔️</div>
 
-<canvas id="gameCanvas" width="900" height="600"></canvas>
-<div id="ui">
-  🔱 משתמש: <span id="userLabel">---</span><br>
-  ❤️ חיים: <span id="hp">100</span><br>
-  💥 ניקוד: <span id="score">0</span><br>
-  🏅 רמה: <span id="level">0</span>
-</div>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-<script>
+    let player = { x: 400, y: 250, size: 40, color: 'blue', hp: 100 };
+    let enemies = [{ x: 600, y: 250, size: 40, color: 'red', hp: 50 }];
+    let isAttacking = false;
 
-// --- נתוני משחק ---
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-const menu = document.getElementById("menu");
-const usernameInput = document.getElementById("usernameInput");
-const startButton = document.getElementById("startButton");
-const errMsg = document.getElementById("errMsg");
-const userLabel = document.getElementById("userLabel");
-const hpText = document.getElementById("hp");
-const scoreText = document.getElementById("score");
-const levelText = document.getElementById("level");
-
-let keys = {}, bullets = [], enemies = [], score = 0;
-let username = "", playerLevel = 0;
-const player = { x:450, y:300, width:40, height:40, color:"#00f7ff", speed:4, hp:100 };
-
-// --- סאונדים ---
-const soundShoot = new Audio('https://freesound.org/data/previews/256/256113_3263906-lq.mp3');
-const soundHit = new Audio('https://freesound.org/data/previews/66/66717_931655-lq.mp3');
-const soundLevel = new Audio('https://freesound.org/data/previews/160/160003_2770533-lq.mp3');
-
-// --- אירועים ---
-document.addEventListener("keydown", e => keys[e.key] = true);
-document.addEventListener("keyup", e => keys[e.key] = false);
-canvas.addEventListener("click", e => {
-  const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-  const ang = Math.atan2(my - player.y, mx - player.x);
-  bullets.push({ x: player.x, y: player.y, dx: Math.cos(ang)*7, dy: Math.sin(ang)*7, radius:5, color:"#fff" });
-  soundShoot.currentTime = 0; soundShoot.play();
-});
-
-// --- התחלת משחק ---
-startButton.onclick = () => {
-  const nm = usernameInput.value.trim();
-  if (!nm) { errMsg.textContent = "אנא הכנס שם משתמש"; return; }
-  username = nm;
-  userLabel.textContent = username;
-  loadLevel();
-  menu.style.display = "none";
-  startGame();
-};
-
-// --- טען רמה מ-LocalStorage ---
-function loadLevel() {
-  const v = localStorage.getItem("brawl-"+username);
-  playerLevel = v ? parseInt(v) : 0;
-  levelText.textContent = playerLevel;
-}
-
-// --- שמור רמה ---
-function saveLevel() {
-  localStorage.setItem("brawl-"+username, playerLevel);
-}
-
-// --- לוגיקת המשחק ---
-function startGame() {
-  score = 0; player.hp = 100; bullets = []; enemies = [];
-  hpText.textContent = player.hp;
-  scoreText.textContent = score;
-  loop();
-}
-
-function update() {
-  if (keys["w"]||keys["ArrowUp"]) player.y -= player.speed;
-  if (keys["s"]||keys["ArrowDown"]) player.y += player.speed;
-  if (keys["a"]||keys["ArrowLeft"]) player.x -= player.speed;
-  if (keys["d"]||keys["ArrowRight"]) player.x += player.speed;
-  player.x = Math.max(0,Math.min(canvas.width,player.x));
-  player.y = Math.max(0,Math.min(canvas.height,player.y));
-
-  bullets.forEach((b,i) => {
-    b.x+=b.dx; b.y+=b.dy;
-    if (b.x<0||b.x>canvas.width||b.y<0||b.y>canvas.height) bullets.splice(i,1);
-  });
-
-  enemies.forEach((e, i) => {
-    const dx = player.x - e.x, dy = player.y - e.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    e.x += (dx/dist)*e.speed; e.y += (dy/dist)*e.speed;
-
-    if (Math.abs(player.x - e.x)<30 && Math.abs(player.y - e.y)<30) {
-      player.hp--; hpText.textContent = player.hp;
-      if (player.hp<=0) {
-        alert(`💀 GAME OVER! ניקוד: ${score}`);
-        location.reload();
-      }
+    function drawPlayer() {
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.size / 2, 0, Math.PI * 2);
+      ctx.fill();
     }
 
-    bullets.forEach((b,j) => {
-      const d = Math.hypot(b.x - e.x, b.y - e.y);
-      if (d < (b.radius + e.size/2)) {
-        enemies.splice(i,1);
-        bullets.splice(j,1);
-        score += 10;
-        scoreText.textContent = score;
-        soundHit.currentTime = 0; soundHit.play();
-        checkLevelUp();
+    function drawEnemies() {
+      enemies.forEach(e => {
+        ctx.fillStyle = e.color;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function move(dir) {
+      const step = 10;
+      if (dir === 'left') player.x -= step;
+      if (dir === 'right') player.x += step;
+      if (dir === 'up') player.y -= step;
+      if (dir === 'down') player.y += step;
+    }
+
+    function attack(active) {
+      isAttacking = active;
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPlayer();
+      drawEnemies();
+
+      if (isAttacking) {
+        enemies.forEach(e => {
+          const dx = e.x - player.x;
+          const dy = e.y - player.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 50) {
+            e.hp -= 1;
+            if (e.hp <= 0) e.x = -1000; // remove from screen
+          }
+        });
       }
-    });
-  });
 
-  if (Math.random()<0.02) {
-    enemies.push({
-      x: Math.random()<0.5 ? 0 : canvas.width,
-      y: Math.random()*canvas.height,
-      speed: 1 + Math.random()*2,
-      color: "red",
-      size: 30
-    });
-  }
-}
+      requestAnimationFrame(gameLoop);
+    }
 
-function checkLevelUp() {
-  const newLevel = Math.floor(score / 100);
-  if (newLevel > playerLevel) {
-    playerLevel = newLevel;
-    levelText.textContent = playerLevel;
-    saveLevel();
-    soundLevel.currentTime = 0; soundLevel.play();
-    alert(`🎉 עלית לרמה ${playerLevel}!`);
-  }
-}
-
-function draw() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle = player.color;
-  ctx.fillRect(player.x - player.width/2, player.y - player.height/2, player.width, player.height);
-
-  bullets.forEach(b => {
-    ctx.fillStyle = b.color;
-    ctx.beginPath();
-    ctx.arc(b.x,b.y,b.radius,0,Math.PI*2);
-    ctx.fill();
-  });
-
-  enemies.forEach(e => {
-    ctx.fillStyle = e.color;
-    ctx.fillRect(e.x - e.size/2, e.y - e.size/2, e.size, e.size);
-  });
-}
-
-function loop() {
-  update(); draw();
-  requestAnimationFrame(loop);
-}
-
-</script>
-
+    gameLoop();
+  </script>
 </body>
 </html>
