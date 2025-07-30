@@ -1,155 +1,162 @@
 <!DOCTYPE html>
 <html lang="he">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>הדף של יונתן</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 0;
-      background: linear-gradient(135deg, #1f1f1f, #2e2e2e);
-      color: white;
-      text-align: center;
-    }
-    .container {
-      max-width: 700px;
-      margin: auto;
-      padding: 20px;
-    }
-    h1, p {
-      margin-bottom: 20px;
-    }
-    #mainImage {
-      max-width: 100%;
-      height: auto;
-      border-radius: 10px;
-      margin-bottom: 20px;
-    }
-    input[type="file"] {
-      margin: 10px 0;
-    }
-    button {
-      margin: 5px;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      background: #00bcd4;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0097a7;
-    }
-    footer {
-      margin-top: 100px;
-      background: #111;
-      padding: 20px;
-    }
-    input[type="password"] {
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: none;
-      margin-top: 10px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>איק אוק - טיקטוק קל</title>
+<style>
+  * {
+    margin: 0; padding: 0; box-sizing: border-box;
+  }
+  body, html {
+    height: 100%;
+    background: black;
+    color: white;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+  }
+  .container {
+    height: 100vh;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+  }
+  .video-item {
+    position: relative;
+    height: 100vh;
+    scroll-snap-align: start;
+  }
+  video {
+    width: 100%;
+    height: 100vh;
+    object-fit: cover;
+  }
+
+  /* הכפתורים בצד ימין */
+  .right-buttons {
+    position: absolute;
+    right: 10px;
+    top: 30%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    z-index: 10;
+  }
+  .btn {
+    background: rgba(0,0,0,0.5);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    color: white;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s;
+  }
+  .btn:hover {
+    background: rgba(255,255,255,0.3);
+  }
+
+  /* המידע התחתון */
+  .bottom-info {
+    position: absolute;
+    bottom: 70px;
+    left: 10px;
+    z-index: 10;
+    max-width: 70%;
+  }
+  .username {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  .description {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  .music {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+  }
+  .music-icon {
+    margin-left: 8px;
+    animation: spin 4s linear infinite;
+  }
+  @keyframes spin {
+    from {transform: rotate(0deg);}
+    to {transform: rotate(360deg);}
+  }
+</style>
 </head>
 <body>
-
-  <div class="container">
-    <h1 id="title" contenteditable="false">ברוך הבא לדף שלי!</h1>
-    <img id="mainImage" src="https://via.placeholder.com/400x200" />
-    <p id="content" contenteditable="false">כאן אפשר לכתוב מה שרוצים.</p>
-
-    <div id="controls" style="display:none;">
-      <input type="file" id="uploadImage" accept="image/*" />
-      <button onclick="saveChanges()">💾 שמור</button>
-      <button onclick="endEdit()">✅ סיום עריכה</button>
+  <div class="container" id="container">
+    <div class="video-item">
+      <video src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm" muted loop></video>
+      <div class="right-buttons">
+        <div class="btn" title="לייק">❤️</div>
+        <div class="btn" title="תגובות">💬</div>
+        <div class="btn" title="שיתוף">↗️</div>
+      </div>
+      <div class="bottom-info">
+        <div class="username">@yony</div>
+        <div class="description">זה וידאו של פרחים יפים 🌸</div>
+        <div class="music">🎵 שיר מקורי <div class="music-icon">🎶</div></div>
+      </div>
     </div>
-    <button id="editBtn" onclick="startEdit()">✏️ ערוך</button>
+
+    <div class="video-item">
+      <video src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/bee.webm" muted loop></video>
+      <div class="right-buttons">
+        <div class="btn" title="לייק">❤️</div>
+        <div class="btn" title="תגובות">💬</div>
+        <div class="btn" title="שיתוף">↗️</div>
+      </div>
+      <div class="bottom-info">
+        <div class="username">@bee_master</div>
+        <div class="description">דבורה עסוקה בעבודה 🐝</div>
+        <div class="music">🎵 מוזיקה שמחה<div class="music-icon">🎶</div></div>
+      </div>
+    </div>
+
+    <div class="video-item">
+      <video src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/tank.webm" muted loop></video>
+      <div class="right-buttons">
+        <div class="btn" title="לייק">❤️</div>
+        <div class="btn" title="תגובות">💬</div>
+        <div class="btn" title="שיתוף">↗️</div>
+      </div>
+      <div class="bottom-info">
+        <div class="username">@tank_guy</div>
+        <div class="description">טנק במבצע ⚔️</div>
+        <div class="music">🎵 צלילי קרב<div class="music-icon">🎶</div></div>
+      </div>
+    </div>
   </div>
 
-  <footer>
-    <input type="password" id="password" placeholder="הכנס סיסמה כדי לערוך" />
-    <button onclick="checkPassword()">🔓 כניסה</button>
-  </footer>
+<script>
+  const container = document.getElementById('container');
+  const videos = container.querySelectorAll('video');
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-  <script>
-    // Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyA77QFBCIaUTqKdphQM989MYlmRW5Gbhhw",
-      authDomain: "yona1324-3eb60.firebaseapp.com",
-      projectId: "yona1324-3eb60",
-      storageBucket: "yona1324-3eb60.appspot.com",
-      messagingSenderId: "225639926814",
-      appId: "1:225639926814:web:891bb970feaae3d564320f"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    const titleEl = document.getElementById("title");
-    const contentEl = document.getElementById("content");
-    const imageEl = document.getElementById("mainImage");
-    const controls = document.getElementById("controls");
-    const editBtn = document.getElementById("editBtn");
-
-    function checkPassword() {
-      const password = document.getElementById("password").value;
-      if (password === "gili2") {
-        startEdit();
+  function playVisibleVideo() {
+    videos.forEach(video => {
+      const rect = video.getBoundingClientRect();
+      if(rect.top >= 0 && rect.bottom <= window.innerHeight) {
+        video.play();
       } else {
-        alert("סיסמה שגויה");
-      }
-    }
-
-    function startEdit() {
-      titleEl.contentEditable = true;
-      contentEl.contentEditable = true;
-      controls.style.display = "block";
-      editBtn.style.display = "none";
-    }
-
-    function endEdit() {
-      titleEl.contentEditable = false;
-      contentEl.contentEditable = false;
-      controls.style.display = "none";
-      editBtn.style.display = "inline-block";
-    }
-
-    function saveChanges() {
-      const title = titleEl.innerText;
-      const content = contentEl.innerText;
-      const imageSrc = imageEl.src;
-
-      firebase.database().ref("page").set({ title, content, image: imageSrc })
-        .then(() => alert("הנתונים נשמרו!"))
-        .catch(err => alert("שגיאה בשמירה: " + err));
-    }
-
-    document.getElementById("uploadImage").addEventListener("change", e => {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = () => imageEl.src = reader.result;
-      reader.readAsDataURL(file);
-    });
-
-    // טעינה ראשונית
-    firebase.database().ref("page").once("value").then(snapshot => {
-      const data = snapshot.val();
-      if (data) {
-        titleEl.innerText = data.title || "כותרת";
-        contentEl.innerText = data.content || "תוכן";
-        imageEl.src = data.image || imageEl.src;
+        video.pause();
       }
     });
-  </script>
+  }
+
+  container.addEventListener('scroll', () => {
+    playVisibleVideo();
+  });
+
+  window.onload = () => {
+    playVisibleVideo();
+  };
+</script>
 </body>
 </html>
