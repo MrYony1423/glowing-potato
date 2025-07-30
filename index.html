@@ -1,71 +1,160 @@
 <!DOCTYPE html>
 <html lang="he">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <title>דף נחיתה עם Firebase</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>דף הנחיתה שלי</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      padding: 50px;
       direction: rtl;
+      padding: 40px;
+      max-width: 700px;
+      margin: auto;
     }
 
-    #editor {
+    #editor, #imageUpload {
       display: none;
-      margin-top: 20px;
-    }
-
-    #editButton, #saveButton {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #loginArea {
       margin-top: 30px;
     }
 
-    textarea {
+    textarea, input[type="text"], input[type="url"] {
       width: 100%;
-      height: 200px;
       font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    img {
+      max-width: 100%;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <h1 id="mainText">ברוכים הבאים לדף הנחיתה שלי!</h1>
 
-  <button id="editButton" style="display:none;">ערוך טקסט</button>
-
-  <div id="editor">
-    <textarea id="textEditor"></textarea><br>
-    <button id="saveButton">שמור</button>
-  </div>
+  <h1 id="title">כותרת ראשית...</h1>
+  <p id="content">תוכן כלשהו יופיע כאן.</p>
+  <img id="image" src="" alt="תמונה מהאתר" style="display:none;">
+  <br>
+  <a id="actionButton" href="#" target="_blank" style="display:none;">
+    <button>כפתור פעולה</button>
+  </a>
 
   <div id="loginArea">
     <input type="password" id="password" placeholder="הכנס סיסמה">
     <button onclick="login()">כניסה</button>
   </div>
 
-  <script>
-    const CORRECT_PASSWORD = "1324"; // ← הסיסמה החדשה שלך
+  <button id="editToggle" style="display:none;" onclick="toggleEdit()">ערוך</button>
 
-    function login() {
-      const input = document.getElementById("password").value;
-      if (input === CORRECT_PASSWORD) {
-        localStorage.setItem("editorAccess", "true");
-        showEditButton();
+  <div id="editor">
+    <input type="text" id="editTitle" placeholder="כותרת חדשה">
+    <textarea id="editContent" placeholder="תוכן חדש..."></textarea>
+    <input type="url" id="editButtonLink" placeholder="קישור לכפתור (למשל https://wa.me/...)">
+    <input type="text" id="editButtonText" placeholder="טקסט על הכפתור">
+    <div id="imageUpload">
+      <input type="file" id="fileInput">
+      <p>← העלה תמונה</p>
+    </div>
+    <button onclick="saveChanges()">שמור</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA77QFBCIaUTqKdphQM989MYlmRW5Gbhhw",
+      authDomain: "yona1324-3eb60.firebaseapp.com",
+      projectId: "yona1324-3eb60",
+      storageBucket: "yona1324-3eb60.firebasestorage.app",
+      messagingSenderId: "225639926814",
+      appId: "1:225639926814:web:891bb970feaae3d564320f",
+      measurementId: "G-ZV41SZR7J9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    const contentDoc = doc(db, "landing", "main");
+
+    async function loadContent() {
+      const snap = await getDoc(contentDoc);
+      if (snap.exists()) {
+        const data = snap.data();
+        document.getElementById("title").innerText = data.title || "";
+        document.getElementById("content").innerText = data.content || "";
+        if (data.imageURL) {
+          document.getElementById("image").src = data.imageURL;
+          document.getElementById("image").style.display = "block";
+        }
+        if (data.buttonURL && data.buttonText) {
+          document.getElementById("actionButton").href = data.buttonURL;
+          document.getElementById("actionButton").querySelector("button").innerText = data.buttonText;
+          document.getElementById("actionButton").style.display = "inline-block";
+        }
+      }
+    }
+
+    loadContent();
+
+    window.login = function () {
+      const pw = document.getElementById("password").value;
+      if (pw === "1324") {
+        document.getElementById("editToggle").style.display = "inline-block";
         document.getElementById("loginArea").style.display = "none";
       } else {
         alert("סיסמה שגויה");
       }
-    }
+    };
 
-    function showEditButton() {
-      document.getElementById("editButton").style.display = "inline-block";
-    }
+    let editing = false;
 
-    document.getElement
+    window.toggleEdit = function () {
+      editing = !editing;
+      document.getElementById("editor").style.display = editing ? "block" : "none";
+      document.getElementById("imageUpload").style.display = editing ? "block" : "none";
+      document.getElementById("editToggle").innerText = editing ? "סיום עריכה" : "ערוך";
+    };
+
+    window.saveChanges = async function () {
+      const title = document.getElementById("editTitle").value;
+      const content = document.getElementById("editContent").value;
+      const buttonURL = document.getElementById("editButtonLink").value;
+      const buttonText = document.getElementById("editButtonText").value;
+
+      let imageURL = null;
+      const file = document.getElementById("fileInput").files[0];
+      if (file) {
+        const storageRef = ref(storage, 'images/siteImage.jpg');
+        await uploadBytes(storageRef, file);
+        imageURL = await getDownloadURL(storageRef);
+      }
+
+      await setDoc(contentDoc, {
+        title,
+        content,
+        imageURL,
+        buttonURL,
+        buttonText
+      });
+
+      alert("המידע נשמר!");
+      window.location.reload();
+    };
+  </script>
+
+</body>
+</html>
