@@ -2,11 +2,10 @@
 <html lang="he">
 <head>
   <meta charset="UTF-8">
-  <title>דף נחיתה עם Firebase</title>
+  <title>דף נחיתה אישי</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -17,7 +16,7 @@
       margin: auto;
     }
 
-    #editor, #imageUpload {
+    #editor {
       display: none;
       margin-top: 30px;
     }
@@ -34,9 +33,9 @@
       cursor: pointer;
     }
 
-    img {
-      max-width: 100%;
-      margin-top: 20px;
+    a button {
+      background-color: #4CAF50;
+      color: white;
     }
   </style>
 </head>
@@ -44,8 +43,7 @@
 
   <h1 id="title">כותרת ראשית...</h1>
   <p id="content">תוכן כלשהו יופיע כאן.</p>
-  <img id="image" src="" alt="תמונה מהאתר" style="display:none;">
-  <br>
+
   <a id="actionButton" href="#" target="_blank" style="display:none;">
     <button>כפתור פעולה</button>
   </a>
@@ -62,55 +60,43 @@
     <textarea id="editContent" placeholder="תוכן חדש..."></textarea>
     <input type="url" id="editButtonLink" placeholder="קישור לכפתור (למשל https://wa.me/...)">
     <input type="text" id="editButtonText" placeholder="טקסט על הכפתור">
-    <div id="imageUpload">
-      <input type="file" id="fileInput">
-      <p>← העלה תמונה</p>
-    </div>
     <button onclick="saveChanges()">שמור</button>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-
+  <script>
+    // הגדרות Firebase שלך
     const firebaseConfig = {
       apiKey: "AIzaSyA77QFBCIaUTqKdphQM989MYlmRW5Gbhhw",
       authDomain: "yona1324-3eb60.firebaseapp.com",
       projectId: "yona1324-3eb60",
-      storageBucket: "yona1324-3eb60.firebasestorage.app",
+      storageBucket: "yona1324-3eb60.appspot.com",
       messagingSenderId: "225639926814",
       appId: "1:225639926814:web:891bb970feaae3d564320f",
       measurementId: "G-ZV41SZR7J9"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
+    // התחברות לפיירבייס
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const docRef = db.collection("landing").doc("main");
 
-    const contentDoc = doc(db, "landing", "main");
-
-    async function loadContent() {
-      const snap = await getDoc(contentDoc);
-      if (snap.exists()) {
-        const data = snap.data();
+    // טעינת תוכן מהמסמך
+    docRef.get().then((doc) => {
+      if (doc.exists) {
+        const data = doc.data();
         document.getElementById("title").innerText = data.title || "";
         document.getElementById("content").innerText = data.content || "";
-        if (data.imageURL) {
-          document.getElementById("image").src = data.imageURL;
-          document.getElementById("image").style.display = "block";
-        }
         if (data.buttonURL && data.buttonText) {
-          document.getElementById("actionButton").href = data.buttonURL;
-          document.getElementById("actionButton").querySelector("button").innerText = data.buttonText;
-          document.getElementById("actionButton").style.display = "inline-block";
+          const btn = document.getElementById("actionButton");
+          btn.href = data.buttonURL;
+          btn.querySelector("button").innerText = data.buttonText;
+          btn.style.display = "inline-block";
         }
       }
-    }
+    });
 
-    loadContent();
-
-    window.login = function () {
+    // התחברות עם סיסמה
+    function login() {
       const pw = document.getElementById("password").value;
       if (pw === "1324") {
         document.getElementById("editToggle").style.display = "inline-block";
@@ -118,42 +104,42 @@
       } else {
         alert("סיסמה שגויה");
       }
-    };
+    }
 
+    // מעבר לעריכה
     let editing = false;
-
-    window.toggleEdit = function () {
+    function toggleEdit() {
       editing = !editing;
-      document.getElementById("editor").style.display = editing ? "block" : "none";
-      document.getElementById("imageUpload").style.display = editing ? "block" : "none";
+      const editor = document.getElementById("editor");
+      editor.style.display = editing ? "block" : "none";
       document.getElementById("editToggle").innerText = editing ? "סיום עריכה" : "ערוך";
-    };
+      if (editing) {
+        // מילוי טפסים מהמסך
+        document.getElementById("editTitle").value = document.getElementById("title").innerText;
+        document.getElementById("editContent").value = document.getElementById("content").innerText;
+      }
+    }
 
-    window.saveChanges = async function () {
+    // שמירת שינויים
+    function saveChanges() {
       const title = document.getElementById("editTitle").value;
       const content = document.getElementById("editContent").value;
       const buttonURL = document.getElementById("editButtonLink").value;
       const buttonText = document.getElementById("editButtonText").value;
 
-      let imageURL = null;
-      const file = document.getElementById("fileInput").files[0];
-      if (file) {
-        const storageRef = ref(storage, 'images/siteImage.jpg');
-        await uploadBytes(storageRef, file);
-        imageURL = await getDownloadURL(storageRef);
-      }
-
-      await setDoc(contentDoc, {
+      docRef.set({
         title,
         content,
-        imageURL,
         buttonURL,
         buttonText
+      }).then(() => {
+        alert("המידע נשמר בהצלחה!");
+        location.reload();
+      }).catch((error) => {
+        alert("אירעה שגיאה: " + error.message);
+        console.error(error);
       });
-
-      alert("המידע נשמר!");
-      window.location.reload();
-    };
+    }
   </script>
 
 </body>
