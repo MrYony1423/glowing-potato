@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>דף הנחיתה שלי</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+      direction: rtl;
+    }
+
+    #editor {
+      display: none;
+      margin-top: 20px;
+    }
+
+    #editButton, #saveButton {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #loginArea {
+      margin-top: 30px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="mainText">ברוכים הבאים לדף הנחיתה שלי!</h1>
+
+  <button id="editButton" style="display:none;">ערוך טקסט</button>
+
+  <div id="editor">
+    <textarea id="textEditor"></textarea><br>
+    <button id="saveButton">שמור</button>
+  </div>
+
+  <div id="loginArea">
+    <input type="password" id="password" placeholder="הכנס סיסמה">
+    <button onclick="login()">כניסה</button>
+  </div>
+
+  <script>
+    const CORRECT_PASSWORD = "1324"; // ← הסיסמה החדשה שלך
+
+    function login() {
+      const input = document.getElementById("password").value;
+      if (input === CORRECT_PASSWORD) {
+        localStorage.setItem("editorAccess", "true");
+        showEditButton();
+        document.getElementById("loginArea").style.display = "none";
+      } else {
+        alert("סיסמה שגויה");
+      }
+    }
+
+    function showEditButton() {
+      document.getElementById("editButton").style.display = "inline-block";
+    }
+
+    document.getElement
