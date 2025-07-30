@@ -3,46 +3,87 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>MyVideoApp - TikTok Like</title>
+<title>IkOk - אפליקציה כמו טיקטוק</title>
 <style>
+  /* --- עיצוב בסיסי ונקי --- */
   body, html {
-    margin: 0; padding: 0; background: black; color: white; font-family: Arial, sans-serif;
+    margin:0; padding:0;
+    background:#000;
+    color:#fff;
+    font-family: Arial, sans-serif;
     display: flex; flex-direction: column; align-items: center;
   }
-  #auth, #upload-section, #video-feed { width: 90vw; max-width: 600px; }
+  h1 {
+    margin: 20px;
+  }
+  #auth, #upload-section, #video-feed {
+    width: 95vw; max-width: 600px;
+  }
   input, button, textarea {
-    padding: 10px; margin: 8px 0; font-size: 1rem; border-radius: 5px; border: none;
+    width: 100%;
+    margin: 8px 0;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: none;
   }
   button {
-    background-color: #1da1f2; color: white; cursor: pointer;
+    background: #ff0040;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
   }
   button:disabled {
-    background-color: gray; cursor: not-allowed;
+    background: #666;
+    cursor: not-allowed;
+  }
+  #video-feed {
+    margin-top: 20px;
+  }
+  .video-item {
+    margin-bottom: 30px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 20px;
   }
   video {
-    width: 100%; max-height: 400px; margin: 10px 0; border-radius: 12px;
+    width: 100%;
+    max-height: 400px;
+    border-radius: 12px;
+    background: black;
   }
-  .video-container {
-    border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px;
+  .video-desc {
+    margin: 10px 0;
   }
   .actions {
-    display: flex; gap: 15px; margin-top: 5px;
+    display: flex; gap: 20px;
   }
   .like-btn, .comment-btn {
-    background: none; border: none; color: #ff4757; font-size: 1.3rem; cursor: pointer;
+    background: none;
+    border: none;
+    color: #ff0040;
+    font-size: 1.3rem;
+    cursor: pointer;
   }
   .comments {
-    margin-top: 10px; font-size: 0.9rem; color: #aaa;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #bbb;
   }
-  #comment-input {
-    width: 100%; margin-top: 10px;
+  .comment-input-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .comment-input-container input {
+    flex-grow: 1;
   }
 </style>
 </head>
 <body>
 
-<h1>ברוכים הבאים ל-MyVideoApp</h1>
+<h1>IkOk - טיקטוק קלון מושקע</h1>
 
+<!-- התחברות והרשמה -->
 <div id="auth">
   <input id="email" type="email" placeholder="אימייל" />
   <input id="password" type="password" placeholder="סיסמה" />
@@ -50,22 +91,25 @@
   <button id="loginBtn">התחברות</button>
 </div>
 
+<!-- העלאת סרטון -->
 <div id="upload-section" style="display:none;">
   <input type="file" id="videoFile" accept="video/*" />
   <textarea id="videoDesc" placeholder="תיאור הסרטון (אופציונלי)"></textarea>
   <button id="uploadBtn" disabled>העלה סרטון</button>
-  <button id="logoutBtn" style="background:#f44336;">התנתק</button>
+  <button id="logoutBtn" style="background:#900;">התנתק</button>
 </div>
 
+<!-- הזרמת סרטונים -->
 <div id="video-feed"></div>
 
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
 <script>
-  // הכנס כאן את פרטי ה-Firebase שלך:
+  // --- הכנס כאן את פרטי Firebase שלך ---
   const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
     authDomain: "YOUR_AUTH_DOMAIN",
@@ -75,7 +119,7 @@
     appId: "YOUR_APP_ID"
   };
 
-  // אתחל Firebase
+  // אתחול Firebase
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
@@ -94,38 +138,34 @@
   const videoDescInput = document.getElementById('videoDesc');
   const logoutBtn = document.getElementById('logoutBtn');
 
-  // אפשר להעלות רק כשיש קובץ
+  // מאפשר העלאה רק כשיש קובץ
   videoFileInput.addEventListener('change', () => {
     uploadBtn.disabled = !videoFileInput.files.length;
   });
 
   // הרשמה
   signupBtn.onclick = () => {
-    const email = emailInput.value;
-    const pass = passwordInput.value;
-    if (!email || !pass) return alert('מלא אימייל וסיסמה');
-    auth.createUserWithEmailAndPassword(email, pass)
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    if (!email || !password) return alert('מלא אימייל וסיסמה');
+    auth.createUserWithEmailAndPassword(email, password)
       .then(() => alert('נרשמת בהצלחה!'))
       .catch(e => alert(e.message));
   };
 
   // התחברות
   loginBtn.onclick = () => {
-    const email = emailInput.value;
-    const pass = passwordInput.value;
-    if (!email || !pass) return alert('מלא אימייל וסיסמה');
-    auth.signInWithEmailAndPassword(email, pass)
-      .then(() => {
-        alert('התחברת!');
-      })
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    if (!email || !password) return alert('מלא אימייל וסיסמה');
+    auth.signInWithEmailAndPassword(email, password)
+      .then(() => alert('התחברת בהצלחה!'))
       .catch(e => alert(e.message));
   };
 
   // התנתקות
   logoutBtn.onclick = () => {
-    auth.signOut().then(() => {
-      alert('התנתקת');
-    });
+    auth.signOut().then(() => alert('התנתקת'));
   };
 
   // העלאת סרטון
@@ -138,22 +178,22 @@
 
     try {
       const user = auth.currentUser;
-      if (!user) throw new Error('לא מחובר');
+      if (!user) throw new Error('אתה חייב להיות מחובר');
 
-      // יצירת שם ייחודי לקובץ
+      // שם ייחודי לקובץ
       const fileName = user.uid + '_' + Date.now() + '_' + file.name;
       const storageRef = storage.ref('videos/' + fileName);
 
-      // העלאת הקובץ
+      // העלאה ל-Firebase Storage
       await storageRef.put(file);
 
       // קבלת URL לצפייה
       const url = await storageRef.getDownloadURL();
 
-      // שמירת מידע במסד
+      // שמירת הסרטון במסד Firestore
       await db.collection('videos').add({
         url,
-        description: videoDescInput.value || '',
+        description: videoDescInput.value.trim(),
         userId: user.uid,
         userEmail: user.email,
         likes: 0,
@@ -161,21 +201,21 @@
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
-      alert('סרטון הועלה בהצלחה!');
+      alert('הסרטון עלה בהצלחה!');
       videoFileInput.value = '';
       videoDescInput.value = '';
       uploadBtn.disabled = true;
       loadVideos();
 
     } catch (e) {
-      alert(e.message);
+      alert('שגיאה: ' + e.message);
     } finally {
       uploadBtn.textContent = 'העלה סרטון';
       uploadBtn.disabled = false;
     }
   };
 
-  // טעינת סרטונים
+  // טעינת סרטונים מהמסד והצגה
   function loadVideos() {
     videoFeed.innerHTML = '';
     db.collection('videos')
@@ -185,31 +225,40 @@
         snapshot.forEach(doc => {
           const data = doc.data();
 
-          const container = document.createElement('div');
-          container.className = 'video-container';
+          // קונטיינר לכל סרטון
+          const videoItem = document.createElement('div');
+          videoItem.className = 'video-item';
 
-          const video = document.createElement('video');
-          video.src = data.url;
-          video.controls = true;
+          // סרטון
+          const videoEl = document.createElement('video');
+          videoEl.src = data.url;
+          videoEl.controls = true;
 
+          // תיאור
           const desc = document.createElement('p');
+          desc.className = 'video-desc';
           desc.textContent = data.description || '(ללא תיאור)';
+
+          // כפתורי לייק ותגובות
+          const actions = document.createElement('div');
+          actions.className = 'actions';
 
           // כפתור לייק
           const likeBtn = document.createElement('button');
-          likeBtn.textContent = `❤️ ${data.likes}`;
           likeBtn.className = 'like-btn';
-
+          likeBtn.textContent = `❤️ ${data.likes}`;
           likeBtn.onclick = () => {
-            const increment = firebase.firestore.FieldValue.increment(1);
-            db.collection('videos').doc(doc.id).update({ likes: increment });
+            db.collection('videos').doc(doc.id).update({
+              likes: firebase.firestore.FieldValue.increment(1)
+            });
           };
 
-          // אזור תגובות
+          actions.appendChild(likeBtn);
+
+          // תגובות
           const commentsDiv = document.createElement('div');
           commentsDiv.className = 'comments';
 
-          // הצגת תגובות קיימות
           if (data.comments && data.comments.length) {
             data.comments.forEach(c => {
               const cP = document.createElement('p');
@@ -218,13 +267,16 @@
             });
           }
 
-          // הוספת תגובה חדשה
+          // אזור לכתיבת תגובה חדשה
+          const commentInputContainer = document.createElement('div');
+          commentInputContainer.className = 'comment-input-container';
+
           const commentInput = document.createElement('input');
           commentInput.placeholder = 'כתוב תגובה...';
-          commentInput.style.width = '80%';
+
           const commentBtn = document.createElement('button');
-          commentBtn.textContent = 'שלח';
           commentBtn.className = 'comment-btn';
+          commentBtn.textContent = 'שלח';
 
           commentBtn.onclick = () => {
             const user = auth.currentUser;
@@ -239,22 +291,25 @@
                 text
               })
             });
+
             commentInput.value = '';
           };
 
-          container.appendChild(video);
-          container.appendChild(desc);
-          container.appendChild(likeBtn);
-          container.appendChild(commentsDiv);
-          container.appendChild(commentInput);
-          container.appendChild(commentBtn);
+          commentInputContainer.appendChild(commentInput);
+          commentInputContainer.appendChild(commentBtn);
 
-          videoFeed.appendChild(container);
+          videoItem.appendChild(videoEl);
+          videoItem.appendChild(desc);
+          videoItem.appendChild(actions);
+          videoItem.appendChild(commentsDiv);
+          videoItem.appendChild(commentInputContainer);
+
+          videoFeed.appendChild(videoItem);
         });
       });
   }
 
-  // בדיקה אם המשתמש מחובר
+  // מאזין למצב התחברות
   auth.onAuthStateChanged(user => {
     if (user) {
       authDiv.style.display = 'none';
