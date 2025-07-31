@@ -2,149 +2,150 @@
 <html lang="he">
 <head>
   <meta charset="UTF-8">
-  <title>פרסום קישורים</title>
+  <title>שליחת פרסום</title>
   <style>
     body {
-      font-family: "Arial", sans-serif;
-      background: linear-gradient(to right, #141e30, #243b55);
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       color: white;
-      text-align: center;
-      padding: 30px;
+      margin: 0;
+      padding: 0;
       direction: rtl;
+      text-align: center;
     }
-    input, button {
+
+    .container {
+      max-width: 500px;
+      margin: 60px auto;
+      background: #1c1c1c;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.1);
+    }
+
+    h1, h2 {
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 90%;
       padding: 12px;
-      margin: 10px;
+      margin: 12px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button, a.action-btn {
+      background: linear-gradient(to right, #00c6ff, #0072ff);
+      color: white;
+      padding: 12px 24px;
       border: none;
       border-radius: 10px;
       font-size: 16px;
-      width: 80%;
-      max-width: 400px;
-    }
-    button {
-      background: #00c9ff;
       cursor: pointer;
-      transition: 0.3s;
+      margin: 10px 5px;
+      text-decoration: none;
+      display: inline-block;
+      transition: 0.3s ease;
     }
-    button:hover {
-      background: #92fe9d;
-      color: black;
+
+    button:hover, a.action-btn:hover {
+      background: linear-gradient(to right, #0072ff, #00c6ff);
+      transform: scale(1.05);
     }
+
+    .back-btn {
+      background: #444;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
     .link-box {
-      background: white;
-      color: black;
-      border-radius: 10px;
-      padding: 15px;
-      margin: 15px auto;
-      max-width: 500px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-    }
-    .link-box button {
-      background: #141e30;
-      color: white;
-      margin-top: 10px;
-    }
-    .nav-buttons {
-      margin-top: 20px;
-    }
-    .nav-buttons button {
-      background: #ff6a00;
+      background-color: #333;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      word-wrap: break-word;
     }
   </style>
 </head>
 <body>
-  <h1 id="main-title">שליחת קישור</h1>
-
-  <div id="form-section">
-    <input id="email" placeholder="האימייל שלך">
-    <input id="link" placeholder="הקישור שלך">
-    <button onclick="sendData()">שלח</button>
-    <br>
-    <button onclick="showSavedLinks()">📂 קישורים שנשמרו</button>
-  </div>
-
-  <div id="saved-links-section" style="display:none">
-    <div class="nav-buttons">
-      <button onclick="backToForm()">⬅ חזרה</button>
-      <button onclick="newPost()">📢 פרסום חדש</button>
+  <div class="container">
+    <div id="send-section" class="section active">
+      <h1>📤 שליחת פרסום</h1>
+      <input id="email" placeholder="הכנס אימייל" />
+      <input id="link" placeholder="הכנס קישור לפרסום" />
+      <button onclick="sendLink()">שלח לוואטסאפ</button>
+      <a class="action-btn" onclick="showSaved()">📂 קישורים שנשמרו</a>
     </div>
-    <div id="saved-links"></div>
+
+    <div id="saved-section" class="section">
+      <h2>📂 קישורים שנשמרו</h2>
+      <div id="links-list">
+        <p>כאן יופיעו הקישורים שלך...</p>
+      </div>
+      <a class="action-btn back-btn" onclick="showSend()">⬅ חזרה</a>
+      <a class="action-btn" onclick="newProject()">+ פרויקט חדש</a>
+    </div>
   </div>
 
   <script>
-    const projectId = "yona1324-3eb60";
-    const apiKey = "AIzaSyA77QFBCIaUTqKdphQM989MYlmRW5Gbhhw";
-    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/links`;
-
-    function sendData() {
-      const email = document.getElementById("email").value;
-      const link = document.getElementById("link").value;
+    function sendLink() {
+      const email = document.getElementById("email").value.trim();
+      const link = document.getElementById("link").value.trim();
 
       if (!email || !link) {
-        alert("מלא את כל השדות");
+        alert("נא למלא את שני השדות");
         return;
       }
 
-      fetch(url, {
-        method: "POST",
-        body: JSON.stringify({
-          fields: {
-            email: { stringValue: email },
-            link: { stringValue: link },
-            created: { integerValue: Date.now() }
-          }
-        }),
-        headers: { "Content-Type": "application/json" }
-      })
-      .then(() => {
-        alert("הקישור נשלח!");
-        document.getElementById("email").value = "";
-        document.getElementById("link").value = "";
-        if (navigator.share) {
-          navigator.share({ text: `קישור: ${link}` });
-        }
-      })
-      .catch(err => alert("שגיאה בשליחה: " + err));
+      // שמירה מקומית
+      const saved = JSON.parse(localStorage.getItem("savedLinks") || "[]");
+      saved.push({ email, link });
+      localStorage.setItem("savedLinks", JSON.stringify(saved));
+
+      // שליחה לוואטסאפ
+      const message = `פרסום חדש מאת: ${email}%0A${link}`;
+      const whatsappURL = `https://wa.me/?text=${message}`;
+      window.location.href = whatsappURL;
     }
 
-    function showSavedLinks() {
-      document.getElementById("form-section").style.display = "none";
-      document.getElementById("saved-links-section").style.display = "block";
-      fetch(url)
-        .then(res => res.json())
-        .then(data => {
-          const linksContainer = document.getElementById("saved-links");
-          linksContainer.innerHTML = "";
-          (data.documents || []).forEach(doc => {
-            const email = doc.fields.email.stringValue;
-            const link = doc.fields.link.stringValue;
-            const div = document.createElement("div");
-            div.className = "link-box";
-            div.innerHTML = `
-              <strong>אימייל:</strong> ${email}<br>
-              <strong>קישור:</strong> <a href="${link}" target="_blank">${link}</a><br>
-              <button onclick="copyText('${link}')">📋 העתק</button>
-            `;
-            linksContainer.appendChild(div);
-          });
+    function showSaved() {
+      document.getElementById("send-section").classList.remove("active");
+      document.getElementById("saved-section").classList.add("active");
+
+      const list = document.getElementById("links-list");
+      list.innerHTML = "";
+
+      const saved = JSON.parse(localStorage.getItem("savedLinks") || "[]");
+      if (saved.length === 0) {
+        list.innerHTML = "<p>אין קישורים עדיין...</p>";
+      } else {
+        saved.reverse().forEach(item => {
+          const div = document.createElement("div");
+          div.className = "link-box";
+          div.innerHTML = `<strong>${item.email}:</strong><br><a href="${item.link}" target="_blank">${item.link}</a>`;
+          list.appendChild(div);
         });
+      }
     }
 
-    function backToForm() {
-      document.getElementById("saved-links-section").style.display = "none";
-      document.getElementById("form-section").style.display = "block";
+    function showSend() {
+      document.getElementById("saved-section").classList.remove("active");
+      document.getElementById("send-section").classList.add("active");
     }
 
-    function newPost() {
+    function newProject() {
       document.getElementById("email").value = "";
       document.getElementById("link").value = "";
-      backToForm();
-    }
-
-    function copyText(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        alert("הקישור הועתק!");
-      });
+      showSend();
     }
   </script>
 </body>
