@@ -1,78 +1,94 @@
 <!DOCTYPE html>
 <html lang="he">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>שליחת פרסום</title>
   <style>
     body {
       font-family: 'Arial', sans-serif;
-      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      background: linear-gradient(to right, #00ff99, #009966);
       color: white;
       margin: 0;
       padding: 0;
       direction: rtl;
       text-align: center;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-
     .container {
-      max-width: 500px;
-      margin: 60px auto;
-      background: #1c1c1c;
+      background: rgba(0, 102, 51, 0.85);
       padding: 30px;
       border-radius: 15px;
-      box-shadow: 0 0 25px rgba(0, 255, 255, 0.1);
+      box-shadow: 0 0 25px #00ff99;
+      max-width: 450px;
+      width: 100%;
     }
-
-    h1, h2 {
-      margin-bottom: 20px;
+    h1 {
+      margin-bottom: 25px;
+      text-shadow: 0 0 10px #00ff99;
     }
-
     input {
       width: 90%;
-      padding: 12px;
+      padding: 14px;
       margin: 12px 0;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-
-    button, a.action-btn {
-      background: linear-gradient(to right, #00c6ff, #0072ff);
-      color: white;
-      padding: 12px 24px;
-      border: none;
       border-radius: 10px;
+      border: none;
       font-size: 16px;
-      cursor: pointer;
-      margin: 10px 5px;
-      text-decoration: none;
-      display: inline-block;
-      transition: 0.3s ease;
+      box-shadow: 0 0 8px #00ff99;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      outline: none;
+      transition: 0.3s;
     }
-
+    input::placeholder {
+      color: #ccffcc;
+    }
+    input:focus {
+      background: rgba(255,255,255,0.2);
+      box-shadow: 0 0 15px #00ff99;
+    }
+    button, a.action-btn {
+      background: linear-gradient(45deg, #00ff99, #009966);
+      color: white;
+      padding: 14px 30px;
+      margin: 15px 8px 0 8px;
+      border: none;
+      border-radius: 14px;
+      font-size: 18px;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 0 15px #00ff99;
+      transition: all 0.3s ease;
+      display: inline-block;
+      user-select: none;
+    }
     button:hover, a.action-btn:hover {
-      background: linear-gradient(to right, #0072ff, #00c6ff);
+      background: linear-gradient(45deg, #009966, #00ff99);
+      box-shadow: 0 0 25px #00ff99;
       transform: scale(1.05);
     }
-
     .back-btn {
-      background: #444;
+      background: #006633;
+      box-shadow: 0 0 10px #006633;
     }
-
     .section {
       display: none;
     }
-
     .section.active {
       display: block;
     }
-
     .link-box {
-      background-color: #333;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 8px;
+      background: rgba(255,255,255,0.1);
+      padding: 14px;
+      margin: 15px auto;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #00ff99;
+      max-width: 480px;
       word-wrap: break-word;
+      text-align: right;
+      direction: rtl;
     }
   </style>
 </head>
@@ -80,61 +96,66 @@
   <div class="container">
     <div id="send-section" class="section active">
       <h1>📤 שליחת פרסום</h1>
-      <input id="email" placeholder="הכנס אימייל" />
-      <input id="link" placeholder="הכנס קישור לפרסום" />
-      <button onclick="sendLink()">שלח לוואטסאפ</button>
-      <a class="action-btn" onclick="showSaved()">📂 קישורים שנשמרו</a>
+      <input id="email" type="email" placeholder="הכנס אימייל" />
+      <input id="link" type="url" placeholder="הכנס קישור לפרסום" />
+      <button onclick="sendWhatsapp()">שלח לוואטסאפ</button>
+      <a href="#" class="action-btn" onclick="showSaved()">📂 קישורים שנשמרו</a>
     </div>
 
     <div id="saved-section" class="section">
       <h2>📂 קישורים שנשמרו</h2>
       <div id="links-list">
-        <p>כאן יופיעו הקישורים שלך...</p>
+        <p>אין קישורים עדיין...</p>
       </div>
-      <a class="action-btn back-btn" onclick="showSend()">⬅ חזרה</a>
-      <a class="action-btn" onclick="newProject()">+ פרויקט חדש</a>
+      <a href="#" class="action-btn back-btn" onclick="showSend()">⬅ חזרה</a>
+      <a href="#" class="action-btn" onclick="newProject()">+ פרויקט חדש</a>
     </div>
   </div>
 
   <script>
-    function sendLink() {
+    const phoneNumber = "+972559528533"; // מספר הוואטסאפ שלך
+
+    function sendWhatsapp() {
       const email = document.getElementById("email").value.trim();
       const link = document.getElementById("link").value.trim();
 
       if (!email || !link) {
-        alert("נא למלא את שני השדות");
+        alert("נא למלא את שני השדות!");
         return;
       }
 
-      // שמירה מקומית
-      const saved = JSON.parse(localStorage.getItem("savedLinks") || "[]");
-      saved.push({ email, link });
-      localStorage.setItem("savedLinks", JSON.stringify(saved));
-
-      // שליחה לוואטסאפ
-      const message = `פרסום חדש מאת: ${email}%0A${link}`;
-      const whatsappURL = `https://wa.me/?text=${message}`;
-      window.location.href = whatsappURL;
+      // הודעת וואטסאפ מוכנה עם קידוד URI
+      const message = encodeURIComponent(`פרסום חדש מאת: ${email}\n${link}`);
+      // וואטסאפ API עם מספר ספציפי
+      const waUrl = `https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${message}`;
+      window.location.href = waUrl;
     }
 
     function showSaved() {
       document.getElementById("send-section").classList.remove("active");
       document.getElementById("saved-section").classList.add("active");
+      const linksList = document.getElementById("links-list");
 
-      const list = document.getElementById("links-list");
-      list.innerHTML = "";
+      // רשימת הקישורים הקבועה שתוצג לכל המשתמשים.
+      // כדי להוסיף או לעדכן קישור, פשוט שנה את הטקסט כאן:
+      const fixedLinks = [
+        { email: "פרסום 1", link: "https://www.google.com" },
+        { email: "פרסום 2", link: "https://www.youtube.com" },
+        { email: "פרסום 3", link: "https://www.wix.com" },
+      ];
 
-      const saved = JSON.parse(localStorage.getItem("savedLinks") || "[]");
-      if (saved.length === 0) {
-        list.innerHTML = "<p>אין קישורים עדיין...</p>";
-      } else {
-        saved.reverse().forEach(item => {
-          const div = document.createElement("div");
-          div.className = "link-box";
-          div.innerHTML = `<strong>${item.email}:</strong><br><a href="${item.link}" target="_blank">${item.link}</a>`;
-          list.appendChild(div);
-        });
+      if (fixedLinks.length === 0) {
+        linksList.innerHTML = "<p>אין קישורים עדיין...</p>";
+        return;
       }
+
+      linksList.innerHTML = "";
+      fixedLinks.slice().reverse().forEach(({email, link}) => {
+        const div = document.createElement("div");
+        div.className = "link-box";
+        div.innerHTML = `<strong>${email}</strong><br><a href="${link}" target="_blank">${link}</a>`;
+        linksList.appendChild(div);
+      });
     }
 
     function showSend() {
